@@ -1,0 +1,21 @@
+gui:
+  nerdFontsVersion: "3"
+  scrollOffMargin: 10
+  theme:
+    selectedLineBgColor:
+      - bold
+      - underline
+    cherryPickedCommitBgColor:
+      - reverse
+    cherryPickedCommitFgColor:
+      - reverse
+    searchingActiveBorderColor:
+      - reverse
+  sidePanelWidth: 0.2 # gives more space for side-by-side view
+os:
+  editPreset: 'nvim'
+git:
+  paging:
+    colorArg: always
+    pager: delta --paging=never -s
+

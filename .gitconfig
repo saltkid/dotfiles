@@ -1,0 +1,28 @@
+[commit]
+    gpgsign = true
+[core]
+    editor = nvim
+    pager = delta
+[merge]
+    conflictstyle = diff3
+[diff]
+    colorMoved = default
+[interactive]
+    diffFilter = delta --color-only features=interactive
+
+[delta]
+    features = side-by-side line-numbers decorations
+    navigate = true    # use n and N to move between diff sections
+    plus-style = syntax "#003800"
+    minus-style = syntax "#3f0001"
+[delta "decorations"]
+    commit-decoration-style = bold yellow box ul
+    file-style = bold yellow ul
+    file-decoration-style = none
+    hunk-header-decoration-style = cyan box ul
+[delta "l-numbers"]
+    line-numbers-left-style = cyan
+    line-numbers-right-style = cyan
+    line-numbers-minus-style = 124
+    line-numbers-plus-style = 28
+
