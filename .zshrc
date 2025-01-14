@@ -42,50 +42,117 @@ function git-clear() {
   git config user.email ""
   git config user.signingkey ""
 }
+# assign user.name, user.email, and user.signing key based on remote.origin.url
+# expected format: git@<domain>-<username>:<repo owner>/<repo name><optional '.git'>
+#                  git@github.com-saltkid:saltkid/dotfiles.git
+#
+# username is based on parsed <domain>-<username>
+# email is based on the ssh file that is named <domain>-<username>
+# signingkey is based on username and email
 function git-setup() {
-  username=$(git ls-remote --get-url origin | cut -d@ -f2 | cut -d: -f1)
-  if [[ -z "$username" ]]; then
-    echo 'No username found in remote.origin.url. expected format is "git@username:repo_owner/repo.git"'
-    echo "Please enter a username:"
-    read -r username
-  else
-    echo "Username found: $username"
+  username=$(git config --get user.name)
+  email=$(git config --get user.email)
+  signingkey=$(git config --get user.signingkey)
+
+  if [[ -n "$username" && -n "$email" && -n "$signingkey" ]]; then
+    echo "Git configuration already set:"
+    echo "user.name: $username"
+    echo "user.email: $email"
+    echo "user.signingkey: $signingkey"
+    echo "No need to reconfigure. Exiting..."
+    unset username email signingkey
+    return
   fi
-  ssh_key_file="$HOME/.ssh/$username.pub"
-  if [[ -f "$ssh_key_file" ]]; then
-    email=$(tail -n 1 "$ssh_key_file" | awk '{print $NF}')
-    echo "Email found: $email"
+
+  if [[ -n "$username" ]]; then
+    echo "Username already set: $username"
   else
-    echo "No SSH public key found for $username. Please enter an email:"
-    read -r email
+    # get username based on remote.origin.url
+    # expected format is like: git@github.com-saltkid:saltkid/dotfiles.git
+    ssh_key_id=$(git ls-remote --get-url origin | cut -d@ -f2 | cut -d: -f1)
+    username=$(echo "$ssh_key_id" | cut -d- -f2-999)
+    if [[ -z "$username" ]]; then
+      echo "No username found in remote.origin.url (${git ls-remote --get-url origin})"
+      echo 'expected format is "git@domain-username:repo_owner/repo.git" (git@github.com-saltkid:saltkid/dotfiles.git)'
+      echo "Please enter a domain (github.com, gitlab.com, etc.):"
+      read -r domain
+      echo "Please enter a username:"
+      read -r username
+      ssh_key_id="$domain-$username"
+    else
+      echo "Username found: $username"
+    fi
   fi
-  signingkey=$(gpg --list-secret-keys --keyid-format LONG 2>/dev/null | grep -B 2 "$username.*<$email>" | grep -oP 'rsa4096\/\K[A-F0-9]{16}')
-  if [[ -z "$signingkey" ]]; then
-    echo "No signing key found for $username. Please enter a signing key:"
-    read -r signing_key
+
+  if [[ -n "$email" ]]; then
+    echo "Email already set: $email"
   else
-    echo "Signing key found: $signingkey"
+    # based on username, get ssh public key since this contains the email.
+    ssh_key_file="$HOME/.ssh/$ssh_key_id.pub"
+    if [[ -f "$ssh_key_file" ]]; then
+      email=$(tail -n 1 "$ssh_key_file" | awk '{print $NF}')
+      echo "Email found: $email"
+    else
+      echo "No SSH public key found for $ssh_key_id. Please enter an email:"
+      read -r email
+    fi
+  fi
+
+  if [[ -n "$signingkey" ]]; then
+    echo "Signing key already set: $signingkey"
+  else
+    # based on username and email, get gpg public key for signing.
+    signingkey=$(gpg --list-secret-keys --keyid-format LONG 2>/dev/null | grep -B 2 "$username.*<$email>" | grep -oP 'rsa4096\/\K[A-F0-9]{16}')
+    if [[ -z "$signingkey" ]]; then
+      echo "No signing key found for username: '$username' with email: '$email'."
+      keys=()
+      i=1
+      for key in $(gpg --list-secret-keys --keyid-format LONG 2>/dev/null | grep "\[SC\]" | grep -oP 'rsa4096\/\K[A-F0-9]{16}'); do
+        tmpuser=$(gpg --list-secret-keys --keyid-format LONG 2>/dev/null | grep -A 1 "$key" | grep -oP '(?<=\]\s)[^\s]+')
+        echo "$i) $key ($tmpuser)"
+        keys+=("$key")
+        ((i++))
+      done
+      if [[ ${#keys[@]} -gt 0 ]]; then
+        echo "Please select a signing key by number (1-${#keys[@]}):"
+        while true; do
+          read -r selected_idx
+          if [[ "$selected_idx" =~ ^[0-9]+$ ]] && (( selected_idx >= 1 && selected_idx <= ${#keys[@]} )); then
+            selected_idx=$((selected_idx))
+            signingkey="${keys[$selected_idx]}"
+            echo "Selected signing key: $signingkey"
+            break
+          else
+            echo "Invalid selection ($selected_idx). Please enter a number between 1 and ${#keys[@]}."
+          fi
+        done
+      else
+        echo "No available GPG keys found either."
+        echo "Consider manually configuring git config or setting up gpg keys."
+        echo "Exiting..."
+        return
+      fi
+    else
+      echo "Signing key found: $signingkey"
+    fi
   fi
   git config user.name "$username"
   git config user.email "$email"
   git config user.signingkey "$signingkey"
-  unset username
-  unset email
-  unset ssh_key_file
-  unset signing_key
+  unset username domain ssh_key_id email ssh_key_file signingkey keys i tmpuser selected_idx
 }
 
+# }}}
+
+# KEYBINDS {{{
 function __gt_integ() {
   source gt -f
   zle accept-line
 }
-# }}}
-
-# KEYBINDS {{{
 zle -N __gt_integ
 
 bindkey '^F' __gt_integ
-bindkey -s '^T' 'tbg run -r -p list-4\n'
+bindkey -s '^T' 'tbg run -r -p list-3\n'
 # }}}
 
 # install zsh plugins {{{
