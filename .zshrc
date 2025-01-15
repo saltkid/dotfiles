@@ -8,6 +8,7 @@ SAVEHIST=1000
 # }}}
 
 # PATH {{{
+path+=("/opt/nvim/bin")
 path+=("/usr/local/go/bin")
 path+=("$HOME/projects/etc/gt")
 export PATH
@@ -20,6 +21,48 @@ export PATH
 
 # }}}
 
+# SOURCE ZSH PLUGINS {{{
+function zsh-plugins-init() {
+  local plugin_dir="${ZDOTDIR:-$HOME}/.zsh_plugins"
+  if [[ ! -d "$plugin_dir" ]]; then
+    echo "Error: No plugins directory found at $plugin_dir."
+    return 1
+  fi
+
+  local plugin_path=
+  for plugin_path in "$plugin_dir"/*/*; do
+    [[ -d "$plugin_dir" ]] || continue
+
+    local plugin=${plugin_path#"$plugin_dir/"} # relative path: e.g. "romaktv/powerlevel10k"
+    local found=0
+    local initscripts=(
+      ${plugin#*/}.zsh
+      ${plugin#*/}.plugin.zsh
+      ${plugin#*/}.zsh-theme
+      ${plugin#*/}.sh
+    )
+    local initscript=
+    for initscript in ${initscripts[@]}; do
+      local filepath="$plugin_path/$initscript"
+      [[ -f "$filepath" ]] || continue
+      source "$filepath"
+      found=1
+      break
+    done
+    if [[ $found -eq 0 ]]; then
+      echo "Warning: No initialization file found for plugin '$plugin'."
+    fi
+  done
+
+  # ADDITIONAL SETUP
+  if [[ -f ${ZDOTDIR:-$HOME}/.p10k.zsh ]]; then
+    source ${ZDOTDIR:-$HOME}/.p10k.zsh
+  fi
+  return 0
+}
+zsh-plugins-init
+# }}}
+
 # ALIASES {{{
 alias lg="lazygit"
 alias l="ls"
@@ -28,6 +71,10 @@ alias la="ls -a"
 alias lla="ls -la"
 alias v="nvim"
 alias v.="nvim ."
+alias ..="cd .."
+alias ...="cd ..."
+alias ....="cd ...."
+alias .....="cd ....."
 alias plugpull="find ${ZDOTDIR:-$HOME}/.zsh_plugins -type d -exec test -e \"{}/.git\" \";\" -print0 | xargs -I {} -0 git -C {} pull"
 # }}}
 
@@ -142,49 +189,15 @@ function git-setup() {
   unset username domain ssh_key_id email ssh_key_file signingkey keys i tmpuser selected_idx
 }
 
-# }}}
-
-# KEYBINDS {{{
 function __gt_integ() {
   source gt -f
   zle accept-line
 }
+# }}}
+
+# KEYBINDS {{{
 zle -N __gt_integ
 
 bindkey '^F' __gt_integ
 bindkey -s '^T' 'tbg run -r -p list-3\n'
-# }}}
-
-# install zsh plugins {{{
-# credits: thank you u/colemaker360
-# https://www.reddit.com/r/zsh/comments/dlmf7r/manually_setup_plugins/
-# removed some plugins I think I would not need and added p10k
-# assumes github and slash separated plugin names
-github_plugins=(
-  romkatv/powerlevel10k
-  zsh-users/zsh-autosuggestions
-  zsh-users/zsh-history-substring-search
-  # must be last
-  z-shell/F-Sy-H
-)
-for plugin in $github_plugins; do
-  # clone the plugin from github if it does not exist
-  if [[ ! -d ${ZDOTDIR:-$HOME}/.zsh_plugins/$plugin ]]; then
-    mkdir -p ${ZDOTDIR:-$HOME}/.zsh_plugins/${plugin%/*}
-    git clone --depth 1 --recursive https://github.com/$plugin.git ${ZDOTDIR:-$HOME}/.zsh_plugins/$plugin
-  fi
-  # load the plugin
-  for initscript in ${plugin#*/}.zsh ${plugin#*/}.plugin.zsh ${plugin#*/}.zsh-theme ${plugin#*/}.sh; do
-    if [[ -f ${ZDOTDIR:-$HOME}/.zsh_plugins/$plugin/$initscript ]]; then
-      source ${ZDOTDIR:-$HOME}/.zsh_plugins/$plugin/$initscript
-      break
-    fi
-  done
-done
-fpath=(${ZDOTDIR:-$HOME}/.zsh_plugins/zsh-users/zsh-completions/src $fpath)
-[[ ! -f ${ZDOTDIR:-$HOME}/.p10k.zsh ]] || source ${ZDOTDIR:-$HOME}/.p10k.zsh
-# clean up
-unset github_plugins
-unset plugin
-unset initscript
 # }}}
