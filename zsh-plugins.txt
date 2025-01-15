@@ -1,0 +1,4 @@
+romkatv/powerlevel10k
+zsh-users/zsh-autosuggestions
+zsh-users/zsh-history-substring-search
+z-shell/F-Sy-H
