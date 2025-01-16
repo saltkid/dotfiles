@@ -1,31 +1,82 @@
 # dotfiles
 @saltkid's dotfiles for WSL, Debian unstable. Includes a build script to get
-GUI apps working. Has editable package lists to add more packages, zsh plugins,
-and nerd fonts on build. 
+GUI apps working. Has editable packages lists to add more packages, zsh
+plugins, and nerd fonts on build. 
+
+# Table of Contents
+- [Setup](#setup)
+    - [Setup from scratch](#setup-from-scratch)
+- [Build details](#build-details)
+- [Post build details](#post-build-details)
+- [Editable packages lists](#editable-packages-lists)
+
+---
+
 # Setup
-This build script assumes a fresh newly installed Debian on WSL. This is
-because when the build fails, the script will try to undo the build process,
-which includes the entire `~/.config` directory for example since a fresh
-install of Debian on WSL does not have that.
-
+If you just want the dotfiles, while in the dotfiles repo, do:
 ```bash
-git clone --recurse-submodules -j8 https://github.com/saltkid/dotfiles.git $HOME/dotfiles
-cd $HOME/dotfiles
-chmod +x ./scripts/build.sh
-./scripts/build.sh
+stow --adopt .
+git restore . # to overwrite existing configs
 ```
-Then restart your shell.
-```bash
-cd $HOME/dotfiles
-chmod +x ./scripts/post-build.sh
-./scripts/post-build.sh
-```
-The `post-build.sh` should fix wayland gui apps not working. See the comments
-at the end of [this issue](https://github.com/microsoft/wslg/issues/1032). It
-is marked as closed but is still relevant today since in my experience, after
-restarting wsl with `wsl --shutdown; wsl`, wayland gui apps won't launch
-anymore without this workaround.
+This dotfiles include build scripts (`./scripts/build.sh` and
+`./scripts/post-build.sh`) which duplicate my setup from a freshly installed
+Debian on WSL
+## Setup from scratch
+1. Install [WSL](https://github.com/microsoft/WSL)
 
+    In an elevated powershell, do
+    ```powershell
+    dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+    dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestartwsl.exe --install
+    wsl.exe --install
+    ```
+2. Install Debian
+
+    Restart PC to apply changes then in an elevated powershell do,
+    ```powershell
+    wsl.exe --update
+    ```
+    Then in a non-elevated powershell, do
+    ```powershell
+    wsl.exe --set-default-version 2
+    wsl.exe --install -d Debian
+    ```
+    This will launch Debian and prompt to create a user
+3. Build my setup
+
+    ```bash
+    git clone --recurse-submodules -j8 https://github.com/saltkid/dotfiles.git $HOME/dotfiles
+    cd $HOME/dotfiles
+    chmod +x ./scripts/build.sh
+    ./scripts/build.sh
+    ```
+    Then restart your shell. When the build fails, the script will try to undo
+    the build process, where you can try executing `build.sh` again (after
+    reading what went wrong of course).
+
+
+4. Post build
+
+    First, restart WSL in powershell:
+    ```powershell
+    wsl.exe --shutdown; wsl
+    ```
+    Then, execute the post build script:
+    ```bash
+    cd $HOME/dotfiles
+    chmod +x ./scripts/post-build.sh
+    ./scripts/post-build.sh
+    ```
+    Then restart your shell again and the gui apps should work now. If you
+    didn't edit `packages.txt`, [`wezterm`](https://github.com/wez/wezterm)
+    will be installed so try that:
+    ```bash
+    wezterm
+    ```
+
+--- 
+
+# Build details
 The build script will always install these packages, regardless of what is
 specified in `packages.txt`
 1. [`curl`](https://curl.se/docs/manpage.html) and [`gpg`](https://gnupg.org/)
@@ -46,7 +97,14 @@ official unstable debian source
 them. Might replace this with zoxide after trying it out but this is fine for
 my simple workflows for now.
 
-# Editable package lists
+# Post Build details
+The `post-build.sh` should fix wayland gui apps not working. See the comments
+at the end of [this issue](https://github.com/microsoft/wslg/issues/1032). It
+is marked as closed but is still relevant today since in my experience, after
+restarting wsl with `wsl --shutdown; wsl`, wayland gui apps won't launch
+anymore without this workaround.
+
+# Editable packages lists
 Packages must be separated by newline. The order does not matter EXCEPT for
 `zsh-plugins.txt` which require syntax highlighting plugins to be last entry.
 That's it.
@@ -59,7 +117,7 @@ That's it.
     - To know which are the correct nerd font names,
     check the directory names
     [here](https://github.com/ryanoasis/nerd-fonts/tree/master/patched-fonts).
-2. `zsh-plugins.txt`
+3. `zsh-plugins.txt`
     - only github plugins following the format: `owner/repo_name`.
     - must be plugins that need to be loaded, in which the init script is
     named like: `<plugin_name>.zsh`, `<plugin_name>.plugin.zsh`,
