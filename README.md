@@ -1,9 +1,13 @@
 # dotfiles
-@saltkid's dotfiles for WSL, Debian unstable. Inclused an build script to get
+@saltkid's dotfiles for WSL, Debian unstable. Includes a build script to get
 GUI apps working. Has editable package lists to add more packages, zsh plugins,
-and nerd fonts on build.
-
+and nerd fonts on build. 
 # Setup
+This build script assumes a fresh newly installed Debian on WSL. This is
+because when the build fails, the script will try to undo the build process,
+which includes the entire `~/.config` directory for example since a fresh
+install of Debian on WSL does not have that.
+
 ```bash
 git clone --recurse-submodules -j8 https://github.com/saltkid/dotfiles.git $HOME/dotfiles
 cd $HOME/dotfiles
