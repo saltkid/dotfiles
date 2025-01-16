@@ -7,11 +7,13 @@ and nerd fonts on build.
 ```bash
 git clone --recurse-submodules -j8 https://github.com/saltkid/dotfiles.git $HOME/dotfiles
 cd $HOME/dotfiles
+chmod +x ./scripts/build.sh
 ./scripts/build.sh
 ```
 Then restart your shell.
 ```bash
 cd $HOME/dotfiles
+chmod +x ./scripts/post-build.sh
 ./scripts/post-build.sh
 ```
 The `post-build.sh` should fix wayland gui apps not working. See the comments
@@ -25,6 +27,7 @@ specified in `packages.txt`
 1. [`curl`](https://curl.se/docs/manpage.html) and [`gpg`](https://gnupg.org/)
 for signing third party apt sources
 2. [`mesa-utils`](https://wiki.debian.org/Mesa) for gui apps
+2. [`stow`](https://wiki.debian.org/Mesa) for dotfile configs
 3. [`uv`](https://github.com/astral-sh/uv) and
 [`lazygit`](https://github.com/jesseduffield/lazygit) because both are not in
 any apt sources

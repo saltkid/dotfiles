@@ -1,11 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 # ASSUMES:
 # - Debian
 # - git already installed
 # Always installed packages 
-# - curl (third party repo signing)
-# - gpg (third party repo signing)
+# - curl and gpg (third party repo signing)
 # - mesa-utils (get gui apps to work)
+# - stow (dotfile configs)
 # - firefox-esr-l10n-nb-no (test gui functionality)
 
 # REPO SETUP {{{
@@ -13,32 +13,41 @@
 echo "deb http://deb.debian.org/debian/ unstable main
 deb-src http://deb.debian.org/debian/ unstable main" | sudo tee /etc/apt/sources.list
 # wezterm repo
-sudo apt install -y curl gpg
-curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg
-echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list
+sudo apt-get install -y curl gpg && \
+curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /etc/apt/keyrings/wezterm-fury.gpg && \
+echo 'deb [signed-by=/etc/apt/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list && \
 
-sudo apt update
-sudo apt upgrade -y
+sudo apt update && \
+sudo apt upgrade -y && \
 sudo apt dist-upgrade -y
+if [ $? -ne 0 ]; then
+  echo "Failed to perform distribution upgrade to debian unstable"
+  exit 1
+fi
+
+DOTFILES_DIR=$(dirname $(dirname $(realpath $0)))
 
 # setup initial dirs
 mkdir ~/source ~/projects ~/work ~/.config
-
 # }}}
 
 # INSTALL PACKAGES {{{
 # minimum required to get gui apps working
 # source: https://wiki.debian.org/InstallingDebianOn/Microsoft/Windows/SubsystemForLinux
-sudo apt install -y mesa-utils firefox-esr-l10n-nb-no
+sudo apt-get install -y mesa-utils firefox-esr-l10n-nb-no
+
+# minimum required for dotfiles
+sudo apt-get install -y stow
+
 # user packages
-sudo apt install -y $(<../packages.txt)
-sudo apt autoremove -y
+sudo apt-get install -y $(< $DOTFILES_DIR/packages.txt)
+sudo apt-get autoremove -y
 # }}}
 
 # INSTALL ZSH PLUGINS {{{
 # based on u/colemaker360's snippet
 # https://www.reddit.com/r/zsh/comments/dlmf7r/manually_setup_plugins/
-for zsh_plugin in $(<../zsh-plugins.txt); do
+for zsh_plugin in $(< $DOTFILES_DIR/zsh-plugins.txt); do
   if [[ ! -d ${ZDOTDIR:-$HOME}/.zsh_plugins/$zsh_plugin ]]; then
     mkdir -p ${ZDOTDIR:-$HOME}/.zsh_plugins/${zsh_plugin%/*}
     git clone --depth 1 --recurse-submodules -j8 https://github.com/$zsh_plugin.git ${ZDOTDIR:-$HOME}/.zsh_plugins/$zsh_plugin
@@ -48,7 +57,7 @@ done
 
 # INSTALL NERD FONTS {{{
 mkdir -p ~/.local/share/fonts/
-for nerd_font in $(<../nerd-fonts.txt); do
+for nerd_font in $(< $DOTFILES_DIR/nerd-fonts.txt); do
   curl -LO https://github.com/ryanoasis/nerd-fonts/releases/latest/download/$nerd_font.tar.xz && \
   tar xf $nerd_font.tar.xz -C ~/.local/share/fonts/ && \
   rm $nerd_font.tar.xz
@@ -96,11 +105,11 @@ fi
 # }}}
 
 # FINISH {{{
-unset packages zsh_plugins zsh_plugin nerd_fonts nerd_font
 chsh -s $(which zsh) $USER
 # initialize dotfiles
-cd $HOME/dotfiles
+cd $DOTFILES_DIR
 stow . --adopt
 git restore . # remove adopted changes
 cd $HOME
+unset DOTFILES_DIR packages zsh_plugins zsh_plugin nerd_fonts nerd_font
 # }}}
