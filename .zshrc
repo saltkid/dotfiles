@@ -201,3 +201,9 @@ zle -N __gt_integ
 bindkey '^F' __gt_integ
 bindkey -s '^T' 'tbg run -r -p list-3\n'
 # }}}
+
+if which uwufetch &>/dev/null && which viu &>/dev/null; then
+  uwufetch -i
+elif which fastfetch &>/dev/null; then
+  fastfetch 2>/dev/null
+fi
