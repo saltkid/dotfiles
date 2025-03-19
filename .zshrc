@@ -10,7 +10,7 @@ SAVEHIST=1000
 # PATH {{{
 path+=("/opt/nvim/bin")
 path+=("/usr/local/go/bin")
-path+=("$HOME/projects/etc/gt")
+path+=("$HOME/Projects/etc/gt")
 export PATH
 # }}}
 

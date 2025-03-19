@@ -1,5 +1,5 @@
 . "$HOME/.local/bin/env"
 
-export GT_SEARCH_DIRS="$HOME/projects/:$HOME/work/:$HOME/dotfiles/:$HOME/source/"
+export GT_SEARCH_DIRS="$HOME/Projects/:$HOME/Work/:$HOME/.dotfiles/:$HOME/Source/"
 export NVM_DIR="$HOME/.nvm"
 export GPG_TTY=$(tty)
