@@ -202,6 +202,19 @@ bindkey '^F' __gt_integ
 bindkey -s '^T' 'tbg run -r -p list-3\n'
 # }}}
 
+# WSL SPECIFIC STUFF {{{
+if [[ $(rg -i microsoft /proc/version) ]]; then
+  function __tbg_next_image() {
+    tbg.exe next-image &>/dev/null &!
+  }
+  zle -N __tbg_next_image
+  bindkey '^[^I' __tbg_next_image
+
+  tbg.exe run -p Debian &>/dev/null &!
+fi
+
+# }}}
+
 if which uwufetch &>/dev/null && which viu &>/dev/null; then
   uwufetch -i
 elif which fastfetch &>/dev/null; then

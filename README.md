@@ -1,5 +1,5 @@
 # dotfiles
-@saltkid's dotfiles for WSL, Debian unstable. Includes a build script to get
+@saltkid's dotfiles. Includes a build script for WSL, Debian unstable to get
 GUI apps working. Has editable packages lists to add more packages, zsh
 plugins, and nerd fonts on build. 
 
@@ -18,8 +18,8 @@ If you just want the dotfiles, while in the dotfiles repo, do:
 stow --adopt .
 git restore . # to overwrite existing configs
 ```
-This dotfiles include build scripts (`./scripts/build.sh` and
-`./scripts/post-build.sh`) which duplicate my setup from a freshly installed
+This dotfiles include build scripts (`./scripts/wsl-debian-build.sh` and
+`./scripts/wsl-debian-post-build.sh`) which duplicate my setup from a freshly installed
 Debian on WSL
 ## Setup from scratch
 [reference](https://wiki.debian.org/InstallingDebianOn/Microsoft/Windows/SubsystemForLinux)
@@ -49,7 +49,7 @@ Debian on WSL
     sudo apt-get install -y git
     git clone --recurse-submodules -j8 https://github.com/saltkid/dotfiles.git $HOME/dotfiles
     cd $HOME/dotfiles
-    chmod +x ./scripts/build.sh
+    chmod +x ./scripts/wsl-debian-build.sh
     ./scripts/build.sh
     ```
     Then restart your shell. When the build fails, the script will try to undo
@@ -64,7 +64,7 @@ Debian on WSL
     Execute the post build script:
     ```bash
     cd $HOME/dotfiles
-    chmod +x ./scripts/post-build.sh
+    chmod +x ./scripts/wsl-debian-post-build.sh
     ./scripts/post-build.sh
     ```
     Restart your shell again and the gui apps should work now. If you
