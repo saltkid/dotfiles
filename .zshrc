@@ -216,7 +216,7 @@ fi
 # }}}
 
 if which fastfetch &>/dev/null; then
-  fastfetch --iterm ~/Pictures/nyarch.png --logo-width 18 --logo-padding-top 5 2>/dev/null
+  fastfetch --iterm ~/Pictures/nyarch.png --logo-width 40 --logo-padding-top 1 2>/dev/null
 elif which uwufetch &>/dev/null && which viu &>/dev/null; then
   uwufetch -i
 fi
