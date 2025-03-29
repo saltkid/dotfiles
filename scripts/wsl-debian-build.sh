@@ -26,7 +26,7 @@ function _build_failed {
     rm ~/$nerd_font.tar.xz 2>/dev/null
   done
   sudo apt-get purge -y curl gpg mesa-utils stow 2>/dev/null
-  sudo apt-get purge -y $(< $DOTFILES_DIR/packages.txt) 2>/dev/null
+  sudo apt-get purge -y $(< $DOTFILES_DIR/wsl-debian-packages.txt) 2>/dev/null
   sudo apt-get autoremove -y 2>/dev/null
   sudo apt-get update && \
   sudo apt-get -y upgrade && \
@@ -79,7 +79,7 @@ mkdir ~/source ~/projects ~/work ~/.config
 sudo apt-get install -y mesa-utils stow && \
 
 # user packages
-sudo apt-get install -y $(< $DOTFILES_DIR/packages.txt) && \
+sudo apt-get install -y $(< $DOTFILES_DIR/wsl-debian-packages.txt) && \
 sudo apt-get -y autoremove
 if [ $? -ne 0 ]; then
   echo "Failed to install required and user packages"
